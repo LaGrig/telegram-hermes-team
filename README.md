@@ -1,1 +1,8 @@
-# telegram-hermes-team
+# Telegram Hermes Team
+
+Этот проект — команда ботов Hermes для работы с Telegram-каналом.
+Все правила и код хранятся здесь, в одном месте (GitHub).
+Структура:
+- agents/ — YAML-файлы с описанием ролей ботов
+- skills/ — Python-скрипты и модули
+- docs/ — документация и заметки
