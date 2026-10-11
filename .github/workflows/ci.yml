@@ -1,0 +1,32 @@
+name: CI Checks
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Check YAML syntax
+        run: |
+          python -c "import yaml,glob; [yaml.safe_load(open(f)) for f in glob.glob('agents/*.yaml')]"
+
+      - name: Check Python syntax
+        run: |
+          python -m compileall skills
