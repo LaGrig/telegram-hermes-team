@@ -6,23 +6,24 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { font-family: sans-serif; text-align: center; padding: 20px; background: var(--tg-theme-bg-color, #fff); color: var(--tg-theme-text-color, #000); }
-        button { display: block; width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 8px; background: var(--tg-theme-button-color, #3390ec); color: var(--tg-theme-button-text-color, #fff); font-size: 16px; cursor: pointer; }
+        button { display: block; width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 8px; background: var(--tg-theme-button-color, #3390ec); color: var(--tg-theme-button-text-color, #fff); font-size: 16px; cursor: pointer; font-weight: bold; }
+        h2 { margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <h2>Каталог новостей</h2>
-    <button onclick="sendCategory('IT и Нейросети')">💻 IT и Нейросети</button>
-    <button onclick="sendCategory('Симрейсинг')">🏎 Симрейсинг</button>
-    <button onclick="sendCategory('Электроника')">🔌 Электроника</button>
+    <h2>Что тебе интересно?</h2>
+    <button onclick="sendCategory('Еда и промокоды')">🍔 Еда и промокоды</button>
+    <button onclick="sendCategory('Обучение и софт')">📚 Обучение и софт</button>
+    <button onclick="sendCategory('Гаджеты и подписки')">💻 Гаджеты и подписки</button>
+    <button onclick="sendCategory('Кино и ивенты')">🎟 Кино и ивенты</button>
 
     <script>
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Открывает приложение на почти полный экран
+        tg.expand();
         
         function sendCategory(cat) {
-            // Отправляем выбранную категорию обратно боту
             tg.sendData(JSON.stringify({category: cat}));
-            tg.close(); // Закрываем приложение
+            tg.close();
         }
     </script>
 </body>
