@@ -3,7 +3,7 @@ agents:
     role: "Поисковик"
     skills:
       - count_words
-      - fetch_rss
+      - search_web
     duties:
       - "Ищет новые тексты и материалы"
       - "Анализирует объём текста (подсчёт слов)"
