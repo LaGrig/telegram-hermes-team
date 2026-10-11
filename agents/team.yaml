@@ -1,11 +1,13 @@
 agents:
   - name: searcher_bot
     role: "Поисковик"
-    skills: []
+    skills: 
+      - count_words
 
   - name: writer_bot
     role: "Писатель"
-    skills: []
+    skills: 
+      - filter_text
 
   - name: editor_bot
     role: "Редактор"
