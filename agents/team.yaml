@@ -36,7 +36,8 @@ agents:
 
   - name: publisher_bot
     role: "Публикатор"
-    skills: []
+    skills: 
+      -publish_telegram
     duties:
       - "Публикует посты в Telegram"
       - "Следит за корректностью формата"
