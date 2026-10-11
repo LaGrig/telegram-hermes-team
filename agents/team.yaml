@@ -13,6 +13,7 @@ agents:
     role: "Писатель"
     skills:
       - filter_text
+      - use_llm
       - rewrite_llm
     duties:
       - "Фильтрует и очищает текст"
