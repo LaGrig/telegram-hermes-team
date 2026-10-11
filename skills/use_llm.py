@@ -2,7 +2,7 @@ import os
 import requests
 
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
-MODEL = "meta-llama/llama-3-8b-instruct:free" 
+MODEL = "meta-llama/llama-3.1-8b-instruct:free" 
 
 def ask_llm(prompt: str, system_role: str = "Ты ИИ-ассистент.") -> str:
     """Универсальный навык: отправляет запрос в бесплатную LLM."""
