@@ -55,7 +55,8 @@ agents:
 
   - name: dev_bot
     role: "Программист"
-    skills: []
+    skills: 
+      - dev_autofix
     duties:
       - "Поддерживает кодовую базу"
       - "Добавляет новые skills"
