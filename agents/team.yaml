@@ -46,7 +46,8 @@ agents:
 
   - name: audience_bot
     role: "Тестировщик / представитель аудитории"
-    skills: []
+    skills: 
+      - audience_feedback
     duties:
       - "Читает опубликованные посты"
       - "Даёт обратную связь"
