@@ -1,0 +1,28 @@
+agents:
+  - name: searcher_bot
+    role: "Поисковик"
+    skills: []
+
+  - name: writer_bot
+    role: "Писатель"
+    skills: []
+
+  - name: editor_bot
+    role: "Редактор"
+    skills: []
+
+  - name: designer_bot
+    role: "Оформитель"
+    skills: []
+
+  - name: publisher_bot
+    role: "Публикатор"
+    skills: []
+
+  - name: audience_bot
+    role: "Тестировщик / представитель аудитории"
+    skills: []
+
+  - name: dev_bot
+    role: "Программист"
+    skills: []
