@@ -18,7 +18,7 @@ def dev_autofix(task_description: str, file_to_edit: str, new_content: str = Non
     print(f"👨‍💻 dev_bot выполняет задачу: {task_description}")
 
     # Перезаписываем файл, если передано новое содержимое
-    if new_content and os.path.exists(file_to_edit):
+    if new_content :
         with open(file_to_edit, 'w', encoding='utf-8') as f:
             f.write(new_content)
         print(f"📝 Файл {file_to_edit} обновлен.")

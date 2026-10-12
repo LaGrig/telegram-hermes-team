@@ -1,0 +1,13 @@
+.env
+__pycache__/
+*.pyc
+*.venv/
+app/.venv/
+published_posts.json
+*.log
+draft_*
+filtered_news.*
+raw_news.*
+temp_task.py
+backlog.txt
+app/users.json

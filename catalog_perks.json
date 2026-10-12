@@ -1,0 +1,445 @@
+{
+  "software": [
+    {
+      "id": "soft_gh_pack",
+      "category": "software",
+      "title": "GitHub Student Developer Pack",
+      "price": "**0 €** (экономия > 1000 €)",
+      "summary": "Бесплатные домены .me, кредиты DigitalOcean, подписки Datadog и инструменты разработки.",
+      "conditions": "Нужна студенческая почта или загрузка карты ISIC.",
+      "url": "https://education.github.com/pack",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "soft_jetbrains",
+      "category": "software",
+      "title": "Все IDE от JetBrains (All Products Pack)",
+      "price": "**0 €** (вместо 289 €/год)",
+      "summary": "Полные лицензии на IntelliJ IDEA Ultimate, PyCharm Pro, WebStorm, CLion на весь срок учебы.",
+      "conditions": "Продлевается раз в год через .edu аккаунт TUKE/UPJŠ.",
+      "url": "https://www.jetbrains.com/community/education/#students",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "soft_notion",
+      "category": "software",
+      "title": "Notion Plus со всеми функциями",
+      "price": "**0 €** (вместо 10 $/мес)",
+      "summary": "Неограниченная загрузка файлов, командный доступ и история изменений страниц.",
+      "conditions": "Регистрация на университетский e-mail.",
+      "url": "https://www.notion.so/product/notion-for-education",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "soft_spotify",
+      "category": "software",
+      "title": "Spotify Premium Student",
+      "price": "**3.49 €/мес** (-50% скидка)",
+      "summary": "Музыка без рекламы и офлайн-прослушивание по официальному студенческому тарифу.",
+      "conditions": "Подтверждение статуса студента через SheerID раз в год.",
+      "url": "https://www.spotify.com/sk/student/",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "soft_autodesk",
+      "category": "software",
+      "title": "Autodesk Fusion 360 & AutoCAD",
+      "price": "**0 €** (вместо 540 €/год)",
+      "summary": "Профессиональный CAD/CAM софт для 3D-моделирования, черчения и симуляций.",
+      "conditions": "Бесплатно для студентов инженерных специальностей TUKE.",
+      "url": "https://www.autodesk.com/education/edu-software/overview",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    }
+  ],
+  "tourism": [
+    {
+      "id": "tour_flixbus",
+      "category": "tourism",
+      "title": "Скидка 10% на все рейсы FlixBus по Европе",
+      "price": "**-10%** на любой билет",
+      "summary": "Регулярный промокод в мобильном приложении на международные автобусы из Кошиц.",
+      "conditions": "Генерируется через личный кабинет ISIC.sk.",
+      "url": "https://www.isic.sk",
+      "valid_until": "2026-12-31T23:59:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "tour_ryanair_erasmus",
+      "category": "tourism",
+      "title": "Ryanair Erasmus / ISIC: Скидка 10% + Багаж 20 кг",
+      "price": "**-10%** + бесплатный регистрируемый багаж",
+      "summary": "Спецтариф на международные перелеты из Кошиц и соседнего Будапешта.",
+      "conditions": "Регистрация номера ESN / ISIC в профиле myRyanair за 2 часа до бронирования.",
+      "url": "https://www.ryanair.com",
+      "valid_until": "2026-12-31T23:59:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "tour_zssk_register",
+      "category": "tourism",
+      "title": "Бесплатный проезд на поездах по всей Словакии (ZSSK)",
+      "price": "**0 €** на все регулярные поезда",
+      "summary": "Официальная регистрация на бесплатный студенческий билет (Bezplatná preprava) по Словакии.",
+      "conditions": "Оформляется на вокзале Кошиц (Železničná stanica) по справке из вуза и ISIC.",
+      "url": "https://www.zssk.sk",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "tour_regiojet",
+      "category": "tourism",
+      "title": "Скидка до 50% на поезда и автобусы RegioJet",
+      "price": "**Скидка до 50%** по Словакии и Чехии",
+      "summary": "Выгодные студенческие билеты на комфортные поезда из Кошиц в Прагу и Братиславу.",
+      "conditions": "Требуется карта ISIC при покупке и контроле в вагоне.",
+      "url": "https://regiojet.sk",
+      "valid_until": "2026-12-31T23:59:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "tour_leo_express",
+      "category": "tourism",
+      "title": "Leo Express: Молодежные тарифы со скидкой",
+      "price": "**Скидка 25% – 50%**",
+      "summary": "Прямые рейсы из Кошиц в Краков, Варшаву и Прагу с Wi-Fi и розетками.",
+      "conditions": "Применимо для студентов до 26 лет при наличии ISIC.",
+      "url": "https://www.leoexpress.com",
+      "valid_until": "2026-12-31T23:59:00",
+      "urgency": "evergreen"
+    }
+  ],
+  "events": [
+    {
+      "id": "ev_sdke_theatre",
+      "category": "events",
+      "title": "🎭 Студенческие билеты в Государственный театр Кошиц",
+      "price": "**3 € – 5 €** (скидка до 60% по ISIC)",
+      "summary": "Драма, опера и балет в историческом здании на Hlavná ulica. Спектакли каждую неделю.",
+      "conditions": "Hlavná 58. Покупка в кассе театра при предъявлении карты ISIC.",
+      "url": "https://www.sdke.sk",
+      "valid_until": "2026-11-11T21:21:32.994997",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "ev_botanical_garden",
+      "category": "events",
+      "title": "🌿 Ботанический сад UPJŠ (Оранжереи и парк)",
+      "price": "**2 €** (студенческий билет)",
+      "summary": "Крупнейший ботсад в Словакии рядом с кампусом TUKE. Тропические теплицы и зона отдыха.",
+      "conditions": "Mánesova 23. Скидка для студентов вузов по ISIC/TUKE ID.",
+      "url": "https://www.upjs.sk/pracoviska/botanicka-zahrada/",
+      "valid_until": "2026-11-11T21:21:32.995012",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "ev_vsg_gallery",
+      "category": "events",
+      "title": "🎨 Выставки в Восточнословацкой галерее (VSG)",
+      "price": "**0 € – 2 €** (льготный вход)",
+      "summary": "Современное визуальное искусство и исторические коллекции прямо на Главной улице.",
+      "conditions": "Hlavná 27. Каждую первую среду месяца вход бесплатный.",
+      "url": "https://vsg.sk",
+      "valid_until": "2026-11-11T21:21:32.995015",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "ev_k13_kulturpark",
+      "category": "events",
+      "title": "🏛 Kasárne / Kulturpark: Выставки и фестивали",
+      "price": "**0 € – 4 €** (студенческий тариф)",
+      "summary": "Главный мультикультурный комплекс Кошиц. Огромный парк, коворкинги, концерты и дизайн-маркеты.",
+      "conditions": "Kukučínova 2. Студенческие скидки на вход и мероприятия по ISIC.",
+      "url": "https://k13.sk",
+      "valid_until": "2026-11-11T21:21:32.995017",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "ev_stm_museum",
+      "category": "events",
+      "title": "🔬 Словацкий технический музей (STM Košice)",
+      "price": "**2.50 €** (скидка 50% по ISIC)",
+      "summary": "Интерактивный научный центр, планетарий и зал физических экспериментов на Главной.",
+      "conditions": "Hlavná 88. Скидка 50% на все экспозиции по студенческому билету.",
+      "url": "https://stm-ke.sk",
+      "valid_until": "2026-11-11T21:21:32.995019",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "ev_kino_usmev",
+      "category": "events",
+      "title": "🎬 Студенческое кино и бар в Kino Úsmev",
+      "price": "**3.50 € – 5 €** (билет по ISIC)",
+      "summary": "Культовый независимый кинотеатр города: фестивальное кино, лекции, открытый бар и терраса.",
+      "conditions": "Kasárenské námestie 1. Скидка на билеты при покупке онлайн или в кассе по ISIC.",
+      "url": "https://kinousmev.sk",
+      "valid_until": "2026-11-11T21:21:32.995021",
+      "urgency": "evergreen"
+    }
+  ],
+  "food": [
+    {
+      "id": "food_dve_lave",
+      "category": "food",
+      "title": "🍕 Denné menu в Dve Ľavé (Hlavná)",
+      "price": "**7.50 €** (вместо 9.50 €)",
+      "summary": "Сытный обед и крафтовые блюда в самом центре города. Большие порции, подходит на двоих.",
+      "conditions": "С понедельника по пятницу с 11:00 до 15:00.",
+      "url": "https://menucka.sk/denne-menu/kosice",
+      "valid_until": "2026-10-26T21:01:11.572155",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "food_smile_street",
+      "category": "food",
+      "title": "🌯 Студенческое комбо в Smile Street Food",
+      "price": "**5.90 €** (скидка 15%)",
+      "summary": "Бургер или кебаб с картошкой фри возле технического университета.",
+      "conditions": "Скидка 15% на всё меню при предъявлении карты ISIC или TUKE ID.",
+      "url": "https://menucka.sk/denne-menu/kosice",
+      "valid_until": "2026-11-01T21:01:11.572158",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "food_nico_caffe",
+      "category": "food",
+      "title": "☕ Студенческий кофе + бейгл в Nico Caffe",
+      "price": "**4.20 €**",
+      "summary": "Утренний сет в коворкинг-кафе возле кампуса UPJŠ. Розетки и быстрый Wi-Fi.",
+      "conditions": "Действует до 12:00 в будние дни при наличии студенческого.",
+      "url": "https://www.facebook.com/nicocaffekosice",
+      "valid_until": "2026-10-26T21:01:11.572160",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "food_tuke_jedalen",
+      "category": "food",
+      "title": "🍔 Обед в студенческой столовой TUKE",
+      "price": "**2.80 € – 3.80 €** (субсидия по ISIC)",
+      "summary": "Комплексный горячий обед: суп + основное блюдо + напиток во всех столовых кампуса TUKE.",
+      "conditions": "Пн-Пт с 11:00 до 14:30. Оплата студенческой картой ISIC.",
+      "url": "https://www.tuke.sk/wps/portal/tuke/university",
+      "valid_until": "2026-11-11T21:05:32.851693",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "food_jedlikova_pizza",
+      "category": "food",
+      "title": "🍕 Студенческая пицца на Jedlíkova (Общаги TUKE)",
+      "price": "**5.50 €** (скидка на вынос)",
+      "summary": "Классическая большая пицца прямо возле общежитий Jedlíkova 5/9.",
+      "conditions": "Скидка для студентов при заказе навынос после 17:00.",
+      "url": "https://menucka.sk/denne-menu/kosice",
+      "valid_until": "2026-11-11T21:08:53.525067",
+      "urgency": "evergreen"
+    }
+  ],
+  "courses": [
+    {
+      "id": "course_cs50",
+      "category": "courses",
+      "title": "Гарвардский курс CS50x (Компьютерные науки)",
+      "price": "**0 €** (полный курс бесплатно)",
+      "summary": "Фундаментальный курс по алгоритмам, C, Python, SQL и веб-разработке с проверкой заданий.",
+      "conditions": "Доступен бесплатно всем желающим на платформе edX.",
+      "url": "https://cs50.harvard.edu/x/",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "course_aws_student",
+      "category": "courses",
+      "title": "AWS Educate: Облачные курсы и лаборатории",
+      "price": "**0 €** + сертификат участника",
+      "summary": "Практические треки по Cloud, DevOps и Data Engineering без привязки кредитной карты.",
+      "conditions": "Регистрация через студенческую почту университета.",
+      "url": "https://aws.amazon.com/education/awseducate/",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "course_cisco_skills",
+      "category": "courses",
+      "title": "Cisco Skills For All: Основы Python и Сетей",
+      "price": "**0 €** (с цифровым бейджем)",
+      "summary": "Интерактивная практика по сетям, кибербезопасности и скриптингу с нуля.",
+      "conditions": "Бесплатно для всех студентов.",
+      "url": "https://skillsforall.com",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "course_google_cloud",
+      "category": "courses",
+      "title": "Google Cloud Career Launchpad",
+      "price": "**0 €** (доступ к практическим лабораториям)",
+      "summary": "Инженерные курсы и подготовка к сертификации Cloud Engineer бесплатно.",
+      "conditions": "Для действующих студентов университетов.",
+      "url": "https://www.cloudskillsboost.google",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "course_kaggle",
+      "category": "courses",
+      "title": "Kaggle Micro-Courses: Data Science & AI",
+      "price": "**0 €** (бесплатная практика на GPU)",
+      "summary": "Интерактивные микро-курсы по Pandas, Machine Learning и Deep Learning прямо в браузере.",
+      "conditions": "Бесплатно для всех пользователей Kaggle.",
+      "url": "https://www.kaggle.com/learn",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "course_freecodecamp",
+      "category": "courses",
+      "title": "freeCodeCamp: Сертификация по Web & Python",
+      "price": "**0 €** (300 часов практики)",
+      "summary": "Полный практический трек по Fullstack-разработке и алгоритмам с портфолио проектами.",
+      "conditions": "Открытый доступ без ограничений.",
+      "url": "https://www.freecodecamp.org",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    }
+  ],
+  "games": [
+    {
+      "id": "egs_cb733f3432db46bca94965b422c33ede",
+      "category": "games",
+      "title": "🎮 НАВСЕГДА: Out of Sight",
+      "price": "**0 €** (вместо 13.99 €)",
+      "summary": "You’re Sophie, a young blind girl who sees through her teddy bear’s eyes. Escape your captors and uncover the evil history of the dark mansi...",
+      "conditions": "Платформа: Epic Games Store. Добавляется в библиотеку навсегда.",
+      "url": "https://store.epicgames.com/p/f350878fcb5242d6851cfe2fa1316e76",
+      "valid_until": "2026-10-15T15:00:00",
+      "urgency": "hard_deadline"
+    },
+    {
+      "id": "egs_af6b823b8698465f9aedc3bddf2e8686",
+      "category": "games",
+      "title": "🎮 НАВСЕГДА: TerraScape",
+      "price": "**0 €** (вместо 15.29 €)",
+      "summary": "Build gorgeous kingdoms on floating islands by strategically placing buildings in this cozy, medieval City-Puzzler. Discover secret combinat...",
+      "conditions": "Платформа: Epic Games Store. Добавляется в библиотеку навсегда.",
+      "url": "https://store.epicgames.com/p/f229ed53ddba40788e0ab62978e9eaf9",
+      "valid_until": "2026-10-15T15:00:00",
+      "urgency": "hard_deadline"
+    },
+    {
+      "id": "game_perm_3328",
+      "category": "games",
+      "title": "🎮 НАВСЕГДА: Best Plumber (IndieGala) Giveaway",
+      "price": "**0 €** (вместо $29.99)",
+      "summary": "Ever dreamed of being a plumber? Probably not... but now’s your chance! Grab Best Plumber for free on IndieGala and step into the boots of a...",
+      "conditions": "Платформа: PC, DRM-Free. Забирается на личный аккаунт навсегда.",
+      "url": "https://www.gamerpower.com/open/best-plumber-pc-giveaway",
+      "valid_until": "2026-10-16T21:08:50.332077",
+      "urgency": "limited_slots"
+    },
+    {
+      "id": "game_gog_classics",
+      "category": "games",
+      "title": "🎮 НАВСЕГДА: Культовые игры GOG Free Collection",
+      "price": "**0 €** (навсегда)",
+      "summary": "Бесплатная подборка классических хитов (Beneath a Steel Sky, Shadow Warrior, Ultima) без DRM.",
+      "conditions": "Платформа: GOG.com. Добавляется в личный аккаунт навсегда.",
+      "url": "https://www.gog.com/partner/free_games",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "game_steam_sales",
+      "category": "games",
+      "title": "🎮 Скидки до 90% на хиты в Steam",
+      "price": "**от 1.99 €** (акции недели)",
+      "summary": "Регулярный раздел топовых игр с рейтингом >85% по цене чашки кофе.",
+      "conditions": "Steam. Акции обновляются каждый понедельник и четверг.",
+      "url": "https://store.steampowered.com/specials",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "game_epic_freebies",
+      "category": "games",
+      "title": "🎮 Раздача недели в Epic Games Store",
+      "price": "**0 €** (каждый четверг)",
+      "summary": "Официальные раздачи платных игр от EGS. Новая игра каждую неделю в 17:00.",
+      "conditions": "Платформа: Epic Games Store. Забирается на аккаунт навсегда.",
+      "url": "https://store.epicgames.com/free-games",
+      "valid_until": "2027-01-01T00:00:00",
+      "urgency": "evergreen"
+    }
+  ],
+  "jobs": [
+    {
+      "id": "job_prof_0_1791839569",
+      "category": "jobs",
+      "title": "💼 Senior SAP (BW/BI) Analytics Consultant",
+      "price": "**от 5.50 €/час** (оплата)",
+      "summary": "Гибкий график для студентов TUKE/UPJŠ. Возможность совмещать с парами.",
+      "conditions": "Кошице. Работа по договору бригады (Dohoda o brigádnickej práci študentov).",
+      "url": "https://www.profesia.sk/praca/dxc-technology/O5357757?search_id=9de262cd-6a57-4d44-8ce6-d3e6e9ecfbd7",
+      "valid_until": "2026-10-26T21:12:49.981395",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "job_prof_1_1791839569",
+      "category": "jobs",
+      "title": "💼 Krupiér/ka, Inšpektor/ka s praxou na živú hru",
+      "price": "**от 5.50 €/час** (оплата)",
+      "summary": "Гибкий график для студентов TUKE/UPJŠ. Возможность совмещать с парами.",
+      "conditions": "Кошице. Работа по договору бригады (Dohoda o brigádnickej práci študentov).",
+      "url": "https://www.profesia.sk/praca/banco-casino-slovakia/O5357895?search_id=9de262cd-6a57-4d44-8ce6-d3e6e9ecfbd7",
+      "valid_until": "2026-10-26T21:12:49.981642",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "job_prof_2_1791839569",
+      "category": "jobs",
+      "title": "💼 Pracovník bistra Dokelu - študentská brigáda",
+      "price": "**от 5.50 €/час** (оплата)",
+      "summary": "Гибкий график для студентов TUKE/UPJŠ. Возможность совмещать с парами.",
+      "conditions": "Кошице. Работа по договору бригады (Dohoda o brigádnickej práci študentov).",
+      "url": "https://www.profesia.sk/praca/gurupu/O5373760?search_id=9de262cd-6a57-4d44-8ce6-d3e6e9ecfbd7",
+      "valid_until": "2026-10-26T21:12:49.981823",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "job_prof_3_1791839569",
+      "category": "jobs",
+      "title": "💼 Obchodný špecialista / Obchodná špecialistka – B2B",
+      "price": "**от 5.50 €/час** (оплата)",
+      "summary": "Гибкий график для студентов TUKE/UPJŠ. Возможность совмещать с парами.",
+      "conditions": "Кошице. Работа по договору бригады (Dohoda o brigádnickej práci študentov).",
+      "url": "https://www.profesia.sk/praca/artep/O5373727?search_id=9de262cd-6a57-4d44-8ce6-d3e6e9ecfbd7",
+      "valid_until": "2026-10-26T21:12:49.982028",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "job_prof_4_1791839569",
+      "category": "jobs",
+      "title": "💼 Projektant pozemných stavieb – brigáda pre študent",
+      "price": "**от 5.50 €/час** (оплата)",
+      "summary": "Гибкий график для студентов TUKE/UPJŠ. Возможность совмещать с парами.",
+      "conditions": "Кошице. Работа по договору бригады (Dohoda o brigádnickej práci študentov).",
+      "url": "https://www.profesia.sk/praca/hescon/O5373473?search_id=9de262cd-6a57-4d44-8ce6-d3e6e9ecfbd7",
+      "valid_until": "2026-10-26T21:12:49.982209",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "job_prof_5_1791839569",
+      "category": "jobs",
+      "title": "💼 Pracovné ponuky e-mailom: Košice, na dohodu (brigá",
+      "price": "**от 5.50 €/час** (оплата)",
+      "summary": "Гибкий график для студентов TUKE/UPJŠ. Возможность совмещать с парами.",
+      "conditions": "Кошице. Работа по договору бригады (Dohoda o brigádnickej práci študentov).",
+      "url": "https://www.profesia.sk",
+      "valid_until": "2026-10-26T21:12:49.982367",
+      "urgency": "evergreen"
+    }
+  ]
+}
