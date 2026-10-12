@@ -1,62 +1,57 @@
 import os
-import time
-import requests
-import subprocess
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from skills.use_llm import ask_llm
 
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHAT_ID = -5457457789
+def send_message(text: str):
+    print(f"[EDITORIAL BOT] {text}")
 
-def send_message(text):
-    requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage", json={"chat_id": CHAT_ID, "text": text})
+def listen(text: str):
+    # 1. Прочитай карту проекта из skills/readme.txt
+    project_map = ""
+    readme_path = os.path.join(os.path.dirname(__file__), "readme.txt")
+    if os.path.exists(readme_path):
+        with open(readme_path, "r", encoding="utf-8") as f:
+            project_map = f.read()
+    else:
+        project_map = "Карта проекта не найдена."
 
-def listen():
-    print(f"🎧 Редакция запущена. Слушаю чат {CHAT_ID}...")
-    send_message("👋 Редакция Hermes снова в строю! Я выучил карту проекта.")
-    offset = 0
-    while True:
+    # 2. Сделай быстрый запрос для определения намерения
+    intent_prompt = f"Определи намерение. Это команда на изменение кода/создание файлов (ответь CODE) или просто вопрос/просьба показать информацию (ответь CHAT)? Текст: {text}"
+    intent = ask_llm(intent_prompt, model="nvidia/nemotron-3.5-lightning:free").strip().upper()
+
+    # 3. Если "CODE" в intent
+    if "CODE" in intent:
+        # Старая логика создания temp_task.py
+        # Генерируем скрипт через ask_llm с моделью cohere/north-mini-code:free
+        code_prompt = f"Напиши Python-скрипт для выполнения задачи: {text}. Сохрани результат в переменной result или выведи на печать. Не используй входные данные, только код."
+        script_content = ask_llm(code_prompt, model="cohere/north-mini-code:free")
+        
+        temp_path = os.path.join(os.path.dirname(__file__), "temp_task.py")
+        with open(temp_path, "w", encoding="utf-8") as f:
+            f.write(script_content)
+        
+        send_message(f"Скрипт создан: {temp_path}. Выполняю...")
         try:
-            updates = requests.get(f"https://api.telegram.org/bot{TOKEN}/getUpdates", params={"offset": offset, "timeout": 30}).json()
-            for update in updates.get("result", []):
-                offset = update["update_id"] + 1
-                msg = update.get("message", {})
-                
-                if msg.get("chat", {}).get("id") == CHAT_ID:
-                    text = msg.get("text", "")
-                    if text.lower().startswith("dev_bot"):
-                        send_message("👨‍💻 Принял задачу. Изучаю карту проекта и пишу код...")
-                        
-                        # Читаем карту проекта из файла
-                        project_map = ""
-                        if os.path.exists("skills/readme.txt"):
-                            with open("skills/readme.txt", "r", encoding="utf-8") as f:
-                                project_map = f.read()
-
-                        # Формируем умный промпт
-                        prompt = f'''Ты dev_bot. Пользователь просит: "{text}". 
-Твоя задача — написать Python-скрипт, который выполнит эту задачу, используя функцию dev_autofix("описание", "путь_к_файлу", "новое_содержимое").
-Формат ответа: ТОЛЬКО рабочий Python код. Никаких пояснений, никаких markdown (без ```python).
-В начале обязательно: from skills.dev_autofix import dev_autofix
-
-ОБЯЗАТЕЛЬНАЯ КАРТА ПРОЕКТА ДЛЯ ПОИСКА ФАЙЛОВ:
-{project_map}'''
-                        
-                        script_code = ask_llm(prompt, "Ты генератор Python кода.")
-                        script_code = script_code.replace("```python", "").replace("```", "").strip()
-                        
-                        with open("temp_task.py", "w", encoding="utf-8") as f:
-                            f.write(script_code)
-                        
-                        send_message("⚙️ Запускаю написанный код...")
-                        
-                        result = subprocess.run(["python", "temp_task.py"], capture_output=True, text=True)
-                        
-                        if result.returncode == 0:
-                            send_message(f"✅ Успех! Код отправлен на GitHub.\n\nЛог:\n{result.stdout[-300:]}")
-                        else:
-                            send_message(f"❌ Ошибка в написанном коде:\n{result.stderr[-300:]}")
+            exec_globals = {"send_message": send_message, "ask_llm": ask_llm}
+            exec(script_content, exec_globals)
         except Exception as e:
-            time.sleep(5)
+            send_message(f"Ошибка выполнения скрипта: {e}")
+
+    # 4. Если "CHAT" в intent
+    elif "CHAT" in intent:
+        # НЕ создавай скрипты. Просто сгенерируй текстовый ответ
+        chat_prompt = f"Ответь на вопрос пользователя, используя карту проекта. Вопрос: {text}\nКарта: {project_map}"
+        answer = ask_llm(chat_prompt, model="nvidia/nemotron-3-ultra-550b-a55b:free")
+        send_message(answer)
+    
+    else:
+        send_message("Не удалось определить намерение. Попробуйте перефразировать запрос.")
 
 if __name__ == "__main__":
-    listen()
+    # Пример ручного запуска
+    if len(sys.argv) > 1:
+        listen(" ".join(sys.argv[1:]))
+    else:
+        print("Usage: python skills/editorial.py <ваш запрос>")
