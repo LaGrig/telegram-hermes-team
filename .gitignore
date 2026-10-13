@@ -11,3 +11,10 @@ raw_news.*
 temp_task.py
 backlog.txt
 app/users.json
+venv/
+.venv
+*.deb
+*.log
+evaluated_cache.json
+raw_candidates.json
+.env

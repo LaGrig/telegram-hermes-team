@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hermes Košice</title>
+    <!-- Telegram Web Apps SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        tg_bg: 'var(--tg-theme-bg-color, #ffffff)',
+                        tg_text: 'var(--tg-theme-text-color, #000000)',
+                        tg_hint: 'var(--tg-theme-hint-color, #999999)',
+                        tg_link: 'var(--tg-theme-link-color, #2481cc)',
+                        tg_button: 'var(--tg-theme-button-color, #2481cc)',
+                        tg_button_text: 'var(--tg-theme-button-text-color, #ffffff)',
+                        tg_secondary_bg: 'var(--tg-theme-secondary-bg-color, #f4f4f5)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="antialiased pb-20">
+
+    <div x-data="hermesApp()" x-init="initApp()">
+        
+        <!-- Липкий хедер с категориями -->
+        <div class="sticky top-0 z-10 bg-tg_secondary_bg border-b border-gray-200 dark:border-gray-800 shadow-sm">
+            <div class="flex overflow-x-auto hide-scrollbar px-4 py-3 space-x-3">
+                <template x-for="cat in categories" :key="cat.id">
+                    <button 
+                        @click="activeCategory = cat.id; hapticFeedback()"
+                        :class="activeCategory === cat.id ? 'bg-tg_button text-tg_button_text shadow-md' : 'bg-tg_bg text-tg_hint'"
+                        class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ease-in-out focus:outline-none"
+                        x-text="cat.name">
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="p-4 space-y-4">
+            
+            <div x-show="loading" class="flex justify-center py-10">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-tg_button"></div>
+            </div>
+
+            <div x-show="!loading && currentItems.length === 0" class="text-center py-10 text-tg_hint">
+                <p>Здесь пока ничего нет.</p>
+            </div>
+
+            <!-- Карточки -->
+            <template x-for="item in currentItems" :key="item.id">
+                <div class="bg-tg_bg rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 transition-transform active:scale-95 cursor-pointer" @click="openLink(item.url)">
+                    
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="text-lg font-bold leading-tight" x-text="formatTitle(item)"></h3>
+                        <div x-show="item.perk_score > 85" class="ml-2 bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full flex-shrink-0">
+                            🔥 ТОП
+                        </div>
+                    </div>
+                    
+                    <div class="inline-block bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-bold px-3 py-1 rounded-lg text-sm mb-3" x-text="item.price"></div>
+                    
+                    <p class="text-tg_text text-sm mb-3 leading-relaxed" x-text="item.consumer_reason || item.raw_text"></p>
+                    
+                    <div class="flex justify-end">
+                        <span class="text-tg_link text-sm font-semibold flex items-center">
+                            Перейти
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </span>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <script>
+        function hermesApp() {
+            return {
+                loading: true,
+                catalog: {},
+                activeCategory: 'jobs',
+                categories: [
+                    { id: 'jobs', name: '💼 Работа' },
+                    { id: 'food', name: '🍔 Еда' },
+                    { id: 'events', name: '🎭 События' },
+                    { id: 'games', name: '🎮 Игры' },
+                    { id: 'software', name: '💻 Софт' }
+                ],
+                
+                async initApp() {
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        window.Telegram.WebApp.ready();
+                        window.Telegram.WebApp.expand();
+                        window.Telegram.WebApp.setHeaderColor('secondary_bg_color');
+                    }
+
+                    try {
+                        const response = await fetch('/api/catalog');
+                        this.catalog = await response.json();
+                    } catch (error) {
+                        console.error("Ошибка загрузки:", error);
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                get currentItems() {
+                    return this.catalog[this.activeCategory] || [];
+                },
+
+                formatTitle(item) {
+                    if (this.activeCategory === 'jobs' && !item.title.startsWith('💼')) {
+                        return '💼 Подработка: ' + item.title;
+                    }
+                    return item.title;
+                },
+
+                hapticFeedback() {
+                    if (window.Telegram && window.Telegram.WebApp.HapticFeedback) {
+                        window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+                    }
+                },
+
+                openLink(url) {
+                    if (url && window.Telegram && window.Telegram.WebApp) {
+                        window.Telegram.WebApp.openLink(url);
+                    } else if (url) {
+                        window.open(url, '_blank');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
