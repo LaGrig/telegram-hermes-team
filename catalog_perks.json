@@ -440,6 +440,50 @@
       "url": "https://www.profesia.sk",
       "valid_until": "2026-10-26T21:12:49.982367",
       "urgency": "evergreen"
+    },
+    {
+      "id": "job_prof_0_1791894078",
+      "category": "jobs",
+      "title": "💼 Práca na doma cez sociálne siete aj pre mamičky na",
+      "price": "**от 5.50 €/час** (оплата)",
+      "summary": "Гибкий график для студентов TUKE/UPJŠ. Возможность совмещать с парами.",
+      "conditions": "Кошице. Работа по договору бригады (Dohoda o brigádnickej práci študentov).",
+      "url": "https://www.profesia.sk/praca/julia-mikolasova/O4055983?search_id=2bc08172-710f-40d2-a3e8-ac08f81889d7",
+      "valid_until": "2026-10-27T12:21:18.546583",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "job_prof_1_1791894078",
+      "category": "jobs",
+      "title": "💼 Statik/čka oceľové konštrukcie - stroje a zariaden",
+      "price": "**от 5.50 €/час** (оплата)",
+      "summary": "Гибкий график для студентов TUKE/UPJŠ. Возможность совмещать с парами.",
+      "conditions": "Кошице. Работа по договору бригады (Dohoda o brigádnickej práci študentov).",
+      "url": "https://www.profesia.sk/praca/phe-design-slovakia/O5374195?search_id=2bc08172-710f-40d2-a3e8-ac08f81889d7",
+      "valid_until": "2026-10-27T12:21:18.546798",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "job_prof_2_1791894078",
+      "category": "jobs",
+      "title": "💼 Práca v sklade (Nová Polhora)",
+      "price": "**от 5.50 €/час** (оплата)",
+      "summary": "Гибкий график для студентов TUKE/UPJŠ. Возможность совмещать с парами.",
+      "conditions": "Кошице. Работа по договору бригады (Dohoda o brigádnickej práci študentov).",
+      "url": "https://www.profesia.sk/praca/exact-forestall/O5374207?search_id=2bc08172-710f-40d2-a3e8-ac08f81889d7",
+      "valid_until": "2026-10-27T12:21:18.546999",
+      "urgency": "evergreen"
+    },
+    {
+      "id": "job_prof_3_1791894078",
+      "category": "jobs",
+      "title": "💼 Obchodno-technický špecialista pre interiérové pod",
+      "price": "**от 5.50 €/час** (оплата)",
+      "summary": "Гибкий график для студентов TUKE/UPJŠ. Возможность совмещать с парами.",
+      "conditions": "Кошице. Работа по договору бригады (Dohoda o brigádnickej práci študentov).",
+      "url": "https://www.profesia.sk/praca/eso-group/O5365637?search_id=2bc08172-710f-40d2-a3e8-ac08f81889d7",
+      "valid_until": "2026-10-27T12:21:18.547200",
+      "urgency": "evergreen"
     }
   ]
 }

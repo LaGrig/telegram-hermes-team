@@ -1,40 +1,34 @@
-import subprocess
-import sys
 import os
+import sys
+import subprocess
 
-STEPS = [
-    ("1. Сборщик (Searcher)", [sys.executable, "skills/searcher.py"], "raw_news.json"),
-    ("2. Тестировщик (Tester)", [sys.executable, "skills/tester.py"], "filtered_news.json"),
-    ("3. Писатель (Writer)", [sys.executable, "skills/writer.py"], "draft_post.txt"),
-]
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+python_bin = sys.executable
 
-def run():
-    print("🚀 Запуск конвейера редакции Hermes...\n")
+# Гарантируем, что все запускаемые агенты видят корень проекта
+env = os.environ.copy()
+env["PYTHONPATH"] = BASE_DIR
+
+def run_step(step_name, command):
+    print(f"\n▶️ [Конвейер] Шаг: {step_name}...")
+    res = subprocess.run(command, cwd=BASE_DIR, env=env)
+    if res.returncode != 0:
+        print(f"❌ Сбой на шаге '{step_name}'!")
+        sys.exit(res.returncode)
+    print(f"✅ Шаг '{step_name}' успешно выполнен.")
+
+def main():
+    print("🚀 Запуск редакционного цикла Hermes...")
     
-    for name, cmd, output_file in STEPS:
-        print(f"▶️ Запуск шага: {name}...")
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            print(f"❌ Сбой на шаге '{name}'!")
-            if result.stdout:
-                print(f"Лог stdout:\n{result.stdout}")
-            if result.stderr:
-                print(f"Лог stderr:\n{result.stderr}")
-            sys.exit(1)
-            
-        if not os.path.exists(output_file) or os.path.getsize(output_file) == 0:
-            print(f"⚠️ Ошибка: шаг '{name}' завершился, но артефакт '{output_file}' пуст или не создан.")
-            if result.stdout:
-                print(f"Лог шага:\n{result.stdout}")
-            sys.exit(1)
-            
-        print(f"✅ Шаг завершен. Файл '{output_file}' обновлен.\n")
-        
-    print("🎉 Конвейер успешно отработал!")
-    print("📄 Итоговый черновик (draft_post.txt):\n")
-    with open("draft_post.txt", "r", encoding="utf-8") as f:
-        print(f.read())
+    # 1. Локальный скрапер (Кошице + Игры + Подработки)
+    run_step("1. Сбор проверенных данных", [python_bin, "skills/local_scraper.py"])
+    
+    # 2. Трехуровневый жесткий аудитор (TTL, сигнатуры, LLM)
+    run_step("2. Аудит актуальности каталога", [python_bin, "skills/auditor.py"])
+    
+    # 3. Публикация дайджеста в канал (если запущен с флагом --publish)
+    if "--publish" in sys.argv:
+        run_step("3. Публикация дайджеста в Telegram", [python_bin, "skills/publish_digest.py"])
 
 if __name__ == "__main__":
-    run()
+    main()
