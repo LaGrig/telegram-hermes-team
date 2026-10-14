@@ -1,0 +1,14 @@
+CRON_TZ=Europe/Bratislava
+
+# 03:00 каждую ночь — полный аудит каталога Mini App и очистка протухших акций
+0 3 * * * cd /home/ubuntu/telegram-hermes-team && /home/ubuntu/telegram-hermes-team/venv/bin/python skills/auditor.py >> /home/ubuntu/telegram-hermes-team/cleaner.log 2>&1
+
+# Каждый час (с 09:00 до 23:00) — охота Снайпера за Шарой (с фильтром Потребителя) + проверка актуальности старой Шары
+15 9-23 * * * cd /home/ubuntu/telegram-hermes-team && /home/ubuntu/telegram-hermes-team/venv/bin/python skills/sniper.py >> /home/ubuntu/telegram-hermes-team/sniper.log 2>&1
+45 9-23 * * * cd /home/ubuntu/telegram-hermes-team && /home/ubuntu/telegram-hermes-team/venv/bin/python skills/auditor.py --shara-only >> /home/ubuntu/telegram-hermes-team/sniper.log 2>&1
+
+# 16:40 каждый день — сборка каталога, подготовка дайджеста и отправка превью Главреду
+40 16 * * * cd /home/ubuntu/telegram-hermes-team && /home/ubuntu/telegram-hermes-team/venv/bin/python run_pipeline.py --prepare >> /home/ubuntu/telegram-hermes-team/cron.log 2>&1
+
+# 17:00 каждый день — автоматическая публикация дайджеста в канал (если не отменено)
+0 17 * * * cd /home/ubuntu/telegram-hermes-team && /home/ubuntu/telegram-hermes-team/venv/bin/python run_pipeline.py --publish-only >> /home/ubuntu/telegram-hermes-team/cron.log 2>&1

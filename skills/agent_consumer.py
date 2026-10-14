@@ -26,9 +26,9 @@ CONSUMER_MANIFESTO = """
    - ОДОБРЯЙ: Вечерние места, пицца, бургеры, бары, скидки по ISIC, работающие после 16:00.
    - БРАКУЙ: Дневные комплексные обеды (закрывающиеся в 14:00-14:30), так как в 17:00 студент на них уже не успеет.
 
-3. ИГРЫ И СОБЫТИЯ (games/events):
-   - ОДОБРЯЙ: Халява (0 €), реальные скидки по ISIC, кинотеатры, тусовки.
-   - БРАКУЙ: Официальные скучные отчеты, научные заседания деканата.
+3. ИГРЫ, ХАЛЯВА И СОБЫТИЯ (games/events/shara):
+   - ОДОБРЯЙ: Полная халява (0 €), раздачи Steam/Playtest ключей, крупные скидки по ISIC, кинотеатры, тусовки.
+   - БРАКУЙ: Мутный спам, микро-скидки (5-10%) на никому не нужный мусор, скучные отчеты деканата.
 
 ФОРМАТ ОТВЕТА (СТРОГО JSON):
 {
@@ -51,6 +51,42 @@ def save_cache(cache):
     with open(cache_path, "w", encoding="utf-8") as f:
         json.dump(cache, f, ensure_ascii=False, indent=2)
 
+def evaluate_single_item(item: dict, category: str = "games", use_cache: bool = True) -> dict:
+    """Единый фейсконтроль Агента-Потребителя для любой карточки (включая Шару)."""
+    cache = load_cache()
+    item_id = item.get("id", item.get("url", item.get("title")))
+
+    if use_cache and item_id in cache:
+        cached_res = cache[item_id]
+        cached_res["from_cache"] = True
+        return cached_res
+
+    prompt = (
+        f"Категория: {category}\n"
+        f"Название: {item.get('title')}\n"
+        f"Цена: {item.get('price', '0 €')}\n"
+        f"Описание: {item.get('raw_text', '')}"
+    )
+    decision = ask_llm(CONSUMER_MANIFESTO, prompt, expect_json=True)
+
+    if not decision or "approved" not in decision:
+        res = {"approved": False, "perk_score": 0, "reason": "LLM не смогла оценить оффер", "from_cache": False}
+    else:
+        res = {
+            "approved": bool(decision.get("approved", False)),
+            "perk_score": int(decision.get("perk_score", 50)),
+            "reason": decision.get("reason", ""),
+            "from_cache": False
+        }
+
+    cache[item_id] = {
+        "approved": res["approved"],
+        "perk_score": res["perk_score"],
+        "reason": res["reason"]
+    }
+    save_cache(cache)
+    return res
+
 def run():
     print("🧠 [Consumer Agent] Запуск ИИ-оценки предложений от лица студента...")
     if not os.path.exists(raw_path):
@@ -60,12 +96,10 @@ def run():
     with open(raw_path, "r", encoding="utf-8") as f:
         raw_data = json.load(f)
 
-    cache = load_cache()
     catalog = {cat: [] for cat in raw_data.keys()}
     stats = {"approved": 0, "rejected": 0, "cached": 0}
 
     for category, items in raw_data.items():
-        # Статические рубрики (софт, курсы, туризм) одобряются автоматически
         if category in ["software", "courses", "tourism"]:
             for it in items:
                 it["perk_score"] = 80
@@ -74,57 +108,24 @@ def run():
             continue
 
         for it in items:
-            item_id = it["id"]
-            
-            # Проверяем кэш
-            if item_id in cache:
-                cached_res = cache[item_id]
+            res = evaluate_single_item(it, category, use_cache=True)
+            if res.get("from_cache"):
                 stats["cached"] += 1
-                if cached_res.get("approved"):
-                    it["perk_score"] = cached_res.get("perk_score", 70)
-                    it["consumer_reason"] = cached_res.get("reason", "")
-                    catalog[category].append(it)
-                    stats["approved"] += 1
-                else:
-                    stats["rejected"] += 1
-                continue
 
-            # Отправляем в LLM
-            prompt = f"Категория: {category}\nНазвание: {it.get('title')}\nЦена: {it.get('price')}\nОписание: {it.get('raw_text')}"
-            decision = ask_llm(CONSUMER_MANIFESTO, prompt, expect_json=True)
-
-            if not decision or "approved" not in decision:
-                # Фоллбэк, если LLM не ответила
-                approved = False
-                reason = "LLM не смогла оценить оффер"
-                score = 0
-            else:
-                approved = decision.get("approved", False)
-                reason = decision.get("reason", "")
-                score = decision.get("perk_score", 50)
-
-            # Сохраняем в кэш
-            cache[item_id] = {
-                "approved": approved,
-                "perk_score": score,
-                "reason": reason
-            }
-
-            if approved:
+            if res.get("approved"):
                 stats["approved"] += 1
-                it["perk_score"] = score
-                it["consumer_reason"] = reason
+                it["perk_score"] = res.get("perk_score", 70)
+                it["consumer_reason"] = res.get("reason", "")
                 catalog[category].append(it)
-                print(f"  🟢 [ОДОБРЕНО] [{category}] {it.get('title')[:40]} | Score: {score}")
-                print(f"     💬 Вердикт: {reason}")
+                if not res.get("from_cache"):
+                    print(f"  🟢 [ОДОБРЕНО] [{category}] {it.get('title')[:40]} | Score: {it['perk_score']}")
+                    print(f"     💬 Вердикт: {it['consumer_reason']}")
             else:
                 stats["rejected"] += 1
-                print(f"  🔴 [ОТКЛОНЕНО] [{category}] {it.get('title')[:40]}")
-                print(f"     💬 Причина: {reason}")
+                if not res.get("from_cache"):
+                    print(f"  🔴 [ОТКЛОНЕНО] [{category}] {it.get('title')[:40]}")
+                    print(f"     💬 Причина: {res.get('reason')}")
 
-    save_cache(cache)
-
-    # Сортируем одобренные офферы по Perk Score
     for cat in catalog:
         catalog[cat].sort(key=lambda x: x.get("perk_score", 0), reverse=True)
 
@@ -132,7 +133,7 @@ def run():
         json.dump(catalog, f, ensure_ascii=False, indent=2)
 
     print(f"\n📊 [Итоги оценки] Одобрено: {stats['approved']} | Отклонено: {stats['rejected']} (Из кэша: {stats['cached']})")
-    print(f"✅ База catalog_perks.json успешно обновлена проверенными офферами.")
+    print("✅ База catalog_perks.json успешно обновлена проверенными офферами.")
 
 if __name__ == "__main__":
     run()
