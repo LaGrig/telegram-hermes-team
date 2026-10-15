@@ -1,228 +1,163 @@
-import os
-import json
-import time
+import os, re, json, requests
 from datetime import datetime, timedelta
-import requests
 from bs4 import BeautifulSoup
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 raw_path = os.path.join(BASE_DIR, "raw_candidates.json")
+SEARCH_QUERIES_FILE = os.path.join(BASE_DIR, "search_queries.json")
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Accept-Language": "sk,cs;q=0.9,en;q=0.8"
-}
+DLC_STOP_WORDS = ["dlc", "starter pack", "pack", "livery", "liveries", "skin", "soundtrack", "ost", "add-on", "addon", "expansion"]
+ADULT_JOB_STOP_WORDS = ["statik", "sestra", "lekár", "inžinier", "stavbyvedúci", "architekt", "účtovník", "manažér", "obchodno-technický", "zvárač", "elektrikár", "montážnik", "kuchár", "šéfkuchár", "sbs", "strážn", "ochrank", "bezpečnostn"]
+
+def is_url_alive(url):
+    try:
+        res = requests.head(url, headers=HEADERS, timeout=8, allow_redirects=True)
+        if res.status_code in [404, 410, 500, 502]: return False
+        return True
+    except Exception: return False
+
+def search_duckduckgo(query):
+    print(f"  🔎 [Search Agent] Ищу: {query}")
+    try:
+        res = requests.post("https://html.duckduckgo.com/html/", data={"q": query}, headers=HEADERS, timeout=12)
+        soup = BeautifulSoup(res.text, "html.parser")
+        results = []
+        for a in soup.select(".result__snippet")[:3]:
+            parent = a.find_parent("div", class_="result")
+            if not parent: continue
+            tnode = parent.select_one(".result__title a")
+            lnode = parent.select_one(".result__url")
+            if tnode and lnode:
+                title = tnode.get_text(strip=True)
+                link = lnode.get("href", "").strip()
+                if "uddg=" in link:
+                    from urllib.parse import unquote
+                    link = unquote(link.split("uddg=")[1].split("&")[0])
+                else:
+                    link = f"https://{link}" if not link.startswith("http") else link
+                results.append({"title": title, "url": link, "snippet": a.get_text(strip=True)})
+        return results
+    except Exception as e:
+        print(f"  ⚠️ Сбой Search Agent: {e}")
+        return []
+
+def is_dlc_or_pack(title, desc="", itype=""):
+    text = f"{title} {desc} {itype}".lower()
+    return any(re.search(rf'\b{w}\b', text) for w in DLC_STOP_WORDS)
+
+def is_fulltime_or_specialist(title, salary):
+    t_low = title.lower()
+    for w in ADULT_JOB_STOP_WORDS:
+        if w in t_low and "brigád" not in t_low and "študent" not in t_low:
+            return True, f"Взрослая/SBS ('{w}')"
+    if "€/мес" in salary and "€/час" not in salary: return True, f"Оклад ({salary})"
+    return False, ""
+
+def format_salary(raw):
+    if not raw: return ""
+    s = re.sub(r'\b[Oo]d\b', 'от', " ".join(raw.split()))
+    s = re.sub(r'\b(?:EUR|€)/hod\.?', '€/час', s, flags=re.I)
+    return re.sub(r'\b(?:EUR|€)/mesiac\b', '€/мес.', s, flags=re.I)
 
 def fetch_raw_jobs():
-    print("💼 [Scraper] Сбор сырых вакансий с Profesia.sk...")
+    print("💼 [Scraper] Сбор подработок Profesia...")
     jobs = []
     try:
-        url = "https://www.profesia.sk/praca/kosice/na-dohodu-brigady/"
-        res = requests.get(url, headers=HEADERS, timeout=10)
-        if res.status_code == 200:
-            soup = BeautifulSoup(res.text, "html.parser")
-            job_cards = soup.select(".list-row, [data-list-row]")
-            for idx, card in enumerate(job_cards):
-                title_node = card.select_one(".title, h2 a, a.title")
-                salary_node = card.select_one(".label-salary, .salary")
-                if not title_node:
-                    continue
-
-                title = title_node.get_text(strip=True)
-                href = title_node.get("href", "")
-                if not href or href == "/" or "/praca/" not in href:
-                    continue
-
-                full_url = href if href.startswith("http") else f"https://www.profesia.sk{href}"
-                salary = salary_node.get_text(strip=True) if salary_node else "Ставка не указана"
-
+        res = requests.get("https://www.profesia.sk/praca/kosice/na-dohodu-brigady/", headers=HEADERS, timeout=12)
+        if res.ok:
+            for card in BeautifulSoup(res.text, "html.parser").select(".list-row")[:20]:
+                tnode = card.select_one(".title")
+                if not tnode: continue
+                title = tnode.get_text(strip=True)
+                url = tnode.get("href", "")
+                if "/praca/" not in url: continue
+                full_url = url if url.startswith("http") else f"https://www.profesia.sk{url}"
+                sal_node = card.select_one(".label-salary, .salary")
+                salary = format_salary(sal_node.get_text(strip=True)) if sal_node else ""
+                is_bad, reason = is_fulltime_or_specialist(title, salary)
+                if is_bad or not salary: continue
                 jobs.append({
-                    "id": f"profesia_{full_url.split('/')[-1].split('?')[0]}",
-                    "category": "jobs",
-                    "title": title,
-                    "price": salary,
-                    "raw_text": f"Вакансия: {title}. Оплата: {salary}. Источник: Profesia Košice.",
-                    "url": full_url,
+                    "id": f"profesia_{full_url.split('/')[-1].split('?')[0]}", "category": "jobs",
+                    "title": title, "price": salary, "url": full_url,
+                    "raw_text": f"Почасовая подработка: {title}. Ставка: {salary}.",
                     "valid_until": (datetime.now() + timedelta(days=14)).isoformat()
                 })
-    except Exception as e:
-        print(f"  ⚠️ Ошибка обращения к Profesia: {e}")
+    except Exception: pass
     return jobs
 
-def fetch_raw_games():
-    games = [
-        {
-            "id": "game_gog_classics",
-            "category": "games",
-            "title": "Культовые игры GOG Free Collection",
-            "price": "0 € (навсегда)",
-            "raw_text": "Раздача классических игр без DRM (Beneath a Steel Sky, Ultima, Shadow Warrior) на GOG.com навсегда.",
-            "url": "https://www.gog.com/partner/free_games",
-            "valid_until": "2027-01-01T00:00:00"
-        },
-        {
-            "id": "game_steam_sales",
-            "category": "games",
-            "title": "Скидки до 90% на хиты в Steam",
-            "price": "от 1.49 €",
-            "raw_text": "Акции недели на популярные кооперативные и синглплеерные игры в Steam.",
-            "url": "https://store.steampowered.com/specials",
-            "valid_until": "2027-01-01T00:00:00"
-        }
-    ]
+def fetch_raw_courses():
+    print("🎓 [Scraper] Динамический поиск курсов (Умный Агент)...")
+    courses = []
+    
+    # Udemy
     try:
-        url = "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=SK&allowCountries=SK"
-        res = requests.get(url, headers=HEADERS, timeout=8)
-        if res.ok:
-            elements = res.json().get("data", {}).get("Catalog", {}).get("searchStore", {}).get("elements", [])
-            for el in elements:
-                promotions = el.get("promotions") or {}
-                offers = promotions.get("promotionalOffers", [])
-                if not offers:
-                    continue
-                active_offer = None
-                for off_group in offers:
-                    for off in off_group.get("promotionalOffers", []):
-                        if off.get("discountSetting", {}).get("discountPercentage") == 0:
-                            active_offer = off
-                            break
-                if active_offer:
-                    title = el.get("title", "")
-                    orig_cents = el.get("price", {}).get("totalPrice", {}).get("originalPrice", 0)
-                    orig_p = f"{orig_cents / 100:.2f} €" if orig_cents > 0 else "Платная игра"
-                    games.insert(0, {
-                        "id": f"egs_{el.get('id')}",
-                        "category": "games",
-                        "title": f"Бесплатная раздача EGS: {title}",
-                        "price": f"0 € (вместо {orig_p})",
-                        "raw_text": f"Игра {title} раздается бесплатно в Epic Games Store вместо {orig_p}. {el.get('description', '')[:120]}",
-                        "url": "https://store.epicgames.com/free-games",
-                        "valid_until": (datetime.now() + timedelta(days=5)).isoformat()
-                    })
-                    break
-    except Exception:
-        pass
-    return games
+        res = requests.get("https://www.udemyfreebies.com/", headers=HEADERS, timeout=10)
+        for c in BeautifulSoup(res.text, "html.parser").select(".coupon-name a")[:3]:
+            title = c.get_text(strip=True)
+            slug = c["href"].rstrip("/").split("/")[-1]
+            try:
+                out_res = requests.get(f"https://www.udemyfreebies.com/out/{slug}", headers=HEADERS, allow_redirects=True, timeout=8)
+                if "udemy.com" in out_res.url:
+                    courses.append({"id": f"udemy_{slug}", "category": "courses", "title": f"Udemy 100% OFF: {title}", "price": "0 €", "url": out_res.url, "raw_text": f"Горящий 100% купон на курс: {title}.", "valid_until": (datetime.now() + timedelta(days=3)).isoformat()})
+            except Exception: continue
+    except Exception: pass
 
-def fetch_raw_food_and_events():
-    food = [
-        {
-            "id": "food_tabacka_bistro",
-            "category": "food",
-            "title": "Вечернее меню и крафт в Bistro Tabačka",
-            "price": "от 6.50 €",
-            "raw_text": "Культовый студенческий центр Tabačka Kulturfabrik на Gorkého 2. Кухня открыта до 22:00, бар до 23:00.",
-            "url": "https://tabacka.sk",
-            "valid_until": (datetime.now() + timedelta(days=30)).isoformat()
-        },
-        {
-            "id": "food_tuke_jedalen",
-            "category": "food",
-            "title": "Обед в столовой TUKE (Jedáleň)",
-            "price": "2.80 € – 3.80 € по ISIC",
-            "raw_text": "Горячий комплексный обед (суп + второе) в столовых кампуса TUKE. Время работы: с 11:00 до 14:30.",
-            "url": "https://www.tuke.sk/wps/portal/tuke/university",
-            "valid_until": (datetime.now() + timedelta(days=30)).isoformat()
-        },
-        {
-            "id": "food_kino_usmev_bar",
-            "category": "food",
-            "title": "Пицца и напитки в баре Kino Úsmev",
-            "price": "от 5.20 €",
-            "raw_text": "Крафтовая пицца и открытый бар возле парка на Kasárenské námestie 1. Работает весь вечер до полуночи.",
-            "url": "https://kinousmev.sk",
-            "valid_until": (datetime.now() + timedelta(days=30)).isoformat()
-        }
+    # Динамические запросы из файла
+    queries = []
+    if os.path.exists(SEARCH_QUERIES_FILE):
+        with open(SEARCH_QUERIES_FILE, "r", encoding="utf-8") as f: queries = json.load(f)
+    else:
+        queries = ["site:coursera.org free courses students IT language", "site:prometheus.org.ua безкоштовні курси IT дизайн", "IT akadémia Košice bootcamp bezplatné"]
+        with open(SEARCH_QUERIES_FILE, "w", encoding="utf-8") as f: json.dump(queries, f, ensure_ascii=False, indent=2)
+
+    for q in queries:
+        for sr in search_duckduckgo(q):
+            courses.append({"id": f"web_{hash(sr['url'])}", "category": "courses", "title": f"Курс: {sr['title']}", "price": "Бесплатно", "url": sr['url'], "raw_text": f"Сниппет: {sr['snippet']}", "valid_until": (datetime.now() + timedelta(days=7)).isoformat()})
+            
+    evergreen = [
+        {"title": "Cisco Skills for All", "url": "https://skillsforall.com/", "desc": "Кибербезопасность и сети."},
+        {"title": "Kaggle Learn", "url": "https://www.kaggle.com/learn", "desc": "Python и Machine Learning."},
+        {"title": "Гарвардский курс CS50x", "url": "https://cs50.harvard.edu/x/", "desc": "Основы Computer Science."}
     ]
+    for idx, ev in enumerate(evergreen):
+        courses.append({"id": f"course_ev_{idx}", "category": "courses", "title": ev["title"], "price": "0 €", "url": ev["url"], "raw_text": ev["desc"], "urgency": "evergreen", "valid_until": "2027-01-01T00:00:00"})
+    return courses
 
+def fetch_raw_food_events():
+    print("🍔 [Scraper] Сбор еды и ивентов...")
+    food = [
+        {"id": "food_tabacka", "category": "food", "title": "Вечернее меню в Bistro Tabačka", "price": "от 6.50 €", "raw_text": "Студенческий культурный центр на Gorkého 2.", "url": "https://tabacka.sk", "valid_until": (datetime.now() + timedelta(days=30)).isoformat()},
+        {"id": "food_usmev", "category": "food", "title": "Пицца у Kino Úsmev", "price": "от 5.20 €", "raw_text": "Бар и стритфуд на Kasárenské námestie 1.", "url": "https://kinousmev.sk", "valid_until": (datetime.now() + timedelta(days=30)).isoformat()},
+        {"id": "food_mc_isic", "category": "food", "title": "Скидки по ISIC в McDonald's", "price": "-30%", "raw_text": "Студенческие комбо при сканировании карты ISIC.", "url": "https://www.mcdonalds.sk/o-nas/isic-a-itic/", "valid_until": (datetime.now() + timedelta(days=30)).isoformat()},
+        {"id": "food_subway_isic", "category": "food", "title": "Скидка по ISIC в Subway", "price": "-10%", "raw_text": "Скидка на сабы по карте ISIC.", "url": "https://www.subway.sk/", "valid_until": (datetime.now() + timedelta(days=30)).isoformat()}
+    ]
     events = [
-        {
-            "id": "ev_kino_usmev",
-            "category": "events",
-            "title": "Студенческий кинопоказ в Kino Úsmev",
-            "price": "5 € по ISIC (скидка 1 €)",
-            "raw_text": "Независимое кино, фестивали и дискуссии в историческом кинотеатре на Kasárenské námestie 1.",
-            "url": "https://kinousmev.sk",
-            "valid_until": (datetime.now() + timedelta(days=30)).isoformat()
-        },
-        {
-            "id": "ev_k13_kulturpark",
-            "category": "events",
-            "title": "Kasárne / Kulturpark: выставки и парковая зона",
-            "price": "0 € – 3 €",
-            "raw_text": "Арт-пространство, выставки, парковая зона и открытые коворкинги на Kukučínova 2.",
-            "url": "https://k13.sk",
-            "valid_until": (datetime.now() + timedelta(days=30)).isoformat()
-        }
+        {"id": "ev_usmev", "category": "events", "title": "Кинопоказы в Kino Úsmev по ISIC", "price": "5 €", "raw_text": "Скидка на билеты по студенческому.", "url": "https://kinousmev.sk", "valid_until": (datetime.now() + timedelta(days=30)).isoformat()},
+        {"id": "ev_cinema_isic", "category": "events", "title": "Билеты в Cinema City (Aupark)", "price": "-2 €", "raw_text": "Льготный тариф для студентов.", "url": "https://www.cinemacity.sk/cinemas/kosice/1090", "valid_until": (datetime.now() + timedelta(days=30)).isoformat()},
+        {"id": "ev_kulturpark", "category": "events", "title": "Kasárne / Kulturpark", "price": "0 €", "raw_text": "Арт-парк, коворкинг и выставки на Kukučínova 2.", "url": "https://k13.sk", "valid_until": (datetime.now() + timedelta(days=30)).isoformat()},
+        {"id": "ev_faxcopy", "category": "events", "title": "Печать курсовых в FaxCOPY", "price": "-10%", "raw_text": "Скидка на распечатку.", "url": "https://www.faxcopy.sk/", "valid_until": (datetime.now() + timedelta(days=30)).isoformat()}
     ]
     return food, events
 
 def get_static_catalog():
+    print("🌍 [QA Scraper] Префлайт-проверка статических ссылок...")
     software = [
-        {
-            "id": "soft_gh_pack",
-            "category": "software",
-            "title": "GitHub Student Developer Pack",
-            "price": "0 € (экономия > 1000 €)",
-            "raw_text": "Бесплатные домены, инструменты, доступ к сервисам облака для студентов вузов.",
-            "url": "https://education.github.com/pack",
-            "valid_until": "2027-01-01T00:00:00"
-        },
-        {
-            "id": "soft_jetbrains",
-            "category": "software",
-            "title": "JetBrains All Products Pack для студентов",
-            "price": "0 € (вместо 289 €/год)",
-            "raw_text": "Бесплатные лицензии на IntelliJ, PyCharm, WebStorm, CLion на весь период учебы по студенческой почте.",
-            "url": "https://www.jetbrains.com/community/education/#students",
-            "valid_until": "2027-01-01T00:00:00"
-        }
-    ]
-    courses = [
-        {
-            "id": "course_cs50",
-            "category": "courses",
-            "title": "Гарвардский курс CS50x по Computer Science",
-            "price": "0 €",
-            "raw_text": "Бесплатный курс по программированию, алгоритмам и веб-разработке на edX.",
-            "url": "https://cs50.harvard.edu/x/",
-            "valid_until": "2027-01-01T00:00:00"
-        }
+        {"id": "soft_autodesk", "category": "software", "title": "Autodesk Fusion 360 & AutoCAD", "price": "0 €", "raw_text": "Бесплатно по почте вуза.", "url": "https://www.autodesk.com/education/", "urgency": "evergreen"},
+        {"id": "soft_jetbrains", "category": "software", "title": "JetBrains All Products Pack", "price": "0 €", "raw_text": "Бесплатные IDE.", "url": "https://www.jetbrains.com/community/education/", "urgency": "evergreen"}
     ]
     tourism = [
-        {
-            "id": "tour_zssk_register",
-            "category": "tourism",
-            "title": "Бесплатные поезда по Словакии (ZSSK)",
-            "price": "0 €",
-            "raw_text": "Регистрация на бесплатный проезд по студенческой карточке ISIC в кассах вокзала Кошиц.",
-            "url": "https://www.zssk.sk",
-            "valid_until": "2027-01-01T00:00:00"
-        }
+        {"id": "tour_zssk", "category": "tourism", "title": "Бесплатные поезда ZSSK", "price": "0 €", "raw_text": "По ISIC.", "url": "https://www.zssk.sk/bezplatna-preprava/studenti/", "urgency": "evergreen"},
+        {"id": "tour_lufthansa", "category": "tourism", "title": "Lufthansa Student Fares", "price": "Спец тариф", "raw_text": "Доп. багаж 2x23кг.", "url": "https://www.lufthansa.com/gr/en/local-page/student-fares", "urgency": "evergreen"},
+        {"id": "tour_ryanair", "category": "tourism", "title": "Ryanair ESNcard", "price": "-10% + багаж", "raw_text": "Скидка на 4 перелета и багаж.", "url": "https://www.ryanair.com/ie/en/plan-trip/explore/erasmus", "urgency": "evergreen"}
     ]
-    return software, courses, tourism
+    return [s for s in software if is_url_alive(s["url"])], [t for t in tourism if is_url_alive(t["url"])]
 
 def run():
-    print("🚀 [Scraper] Сбор сырых кандидатов со всех источников...")
-    raw_data = {cat: [] for cat in ["jobs", "games", "food", "events", "software", "courses", "tourism"]}
-    
-    raw_data["jobs"] = fetch_raw_jobs()
-    raw_data["games"] = fetch_raw_games()
-    
-    food, events = fetch_raw_food_and_events()
-    raw_data["food"] = food
-    raw_data["events"] = events
+    raw = {"jobs": fetch_raw_jobs(), "courses": fetch_raw_courses()}
+    food, events = fetch_raw_food_events()
+    soft, tour = get_static_catalog()
+    raw.update({"food": food, "events": events, "software": soft, "tourism": tour, "games": []})
+    with open(raw_path, "w", encoding="utf-8") as f: json.dump(raw, f, ensure_ascii=False, indent=2)
 
-    soft, courses, tour = get_static_catalog()
-    raw_data["software"] = soft
-    raw_data["courses"] = courses
-    raw_data["tourism"] = tour
-
-    with open(raw_path, "w", encoding="utf-8") as f:
-        json.dump(raw_data, f, ensure_ascii=False, indent=2)
-
-    total = sum(len(v) for v in raw_data.values())
-    print(f"✅ [Scraper] Собрано {total} сырых кандидатов -> сохранены в raw_candidates.json")
-
-if __name__ == "__main__":
-    run()
+if __name__ == "__main__": run()

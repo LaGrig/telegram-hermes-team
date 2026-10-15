@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hermes Košice</title>
-    <!-- Telegram Web Apps SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -43,12 +40,12 @@
 <body class="antialiased pb-20">
 
     <div x-data="hermesApp()" x-init="initApp()">
-        
+
         <!-- Липкий хедер с категориями -->
         <div class="sticky top-0 z-10 bg-tg_secondary_bg border-b border-gray-200 dark:border-gray-800 shadow-sm">
-            <div class="flex overflow-x-auto hide-scrollbar px-4 py-3 space-x-3">
+            <div class="flex overflow-x-auto hide-scrollbar px-4 py-3 space-x-2">
                 <template x-for="cat in categories" :key="cat.id">
-                    <button 
+                    <button
                         @click="activeCategory = cat.id; hapticFeedback()"
                         :class="activeCategory === cat.id ? 'bg-tg_button text-tg_button_text shadow-md' : 'bg-tg_bg text-tg_hint'"
                         class="whitespace-nowrap px-4 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 ease-in-out focus:outline-none"
@@ -60,7 +57,7 @@
 
         <!-- Основной контент -->
         <div class="p-4 space-y-4">
-            
+
             <div x-show="loading" class="flex justify-center py-10">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-tg_button"></div>
             </div>
@@ -72,21 +69,41 @@
             <!-- Карточки -->
             <template x-for="item in currentItems" :key="item.id">
                 <div class="bg-tg_bg rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 transition-transform active:scale-95 cursor-pointer" @click="openLink(item.url)">
-                    
-                    <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-lg font-bold leading-tight" x-text="formatTitle(item)"></h3>
-                        <div x-show="item.perk_score > 85" class="ml-2 bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded-full flex-shrink-0">
-                            🔥 ТОП
+
+                    <div class="flex justify-between items-start gap-2 mb-2">
+                        <h3 class="text-base font-bold leading-snug" x-text="formatTitle(item)"></h3>
+                        <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                            
+                            <!-- 1. Бейдж PROMO (Выводится только для рекламных постов) -->
+                            <span x-show="item.is_ad" class="bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 text-xs font-bold px-2.5 py-0.5 rounded-full shadow-sm">
+                                💎 PROMO
+                            </span>
+                            
+                            <!-- 2. Бейдж СВЕЖАК (Скрыт у PROMO) -->
+                            <span x-show="!item.is_ad && item.is_fresh" class="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                                🆕 СВЕЖАК
+                            </span>
+                            
+                            <!-- 3. Бейдж ТОП (Скрыт у PROMO) -->
+                            <span x-show="!item.is_ad && item.perk_score > 85" class="bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-300 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                                🔥 ТОП
+                            </span>
+
                         </div>
                     </div>
-                    
-                    <div class="inline-block bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-bold px-3 py-1 rounded-lg text-sm mb-3" x-text="item.price"></div>
-                    
-                    <p class="text-tg_text text-sm mb-3 leading-relaxed" x-text="item.consumer_reason || item.raw_text"></p>
-                    
+
+                    <div class="inline-block bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 font-bold px-3 py-1 rounded-lg text-sm mb-3">
+                        <span>💰 Цена: </span><span x-text="item.price"></span>
+                    </div>
+
+                    <p class="text-tg_text text-sm mb-3 leading-relaxed">
+                        <span class="font-semibold text-tg_hint">Кратко что там: </span>
+                        <span x-text="item.consumer_reason || item.raw_text"></span>
+                    </p>
+
                     <div class="flex justify-end">
                         <span class="text-tg_link text-sm font-semibold flex items-center">
-                            Перейти
+                            Забрать / Источник
                             <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </span>
                     </div>
@@ -103,12 +120,14 @@
                 activeCategory: 'jobs',
                 categories: [
                     { id: 'jobs', name: '💼 Работа' },
-                    { id: 'food', name: '🍔 Еда' },
+                    { id: 'food', name: '🍔 Еда & ISIC' },
                     { id: 'events', name: '🎭 События' },
                     { id: 'games', name: '🎮 Игры' },
-                    { id: 'software', name: '💻 Софт' }
+                    { id: 'software', name: '💻 IT & Софт' },
+                    { id: 'tourism', name: '🚆 Транспорт' },
+                    { id: 'courses', name: '🎓 Курсы' }
                 ],
-                
+
                 async initApp() {
                     if (window.Telegram && window.Telegram.WebApp) {
                         window.Telegram.WebApp.ready();

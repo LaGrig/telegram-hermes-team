@@ -1,139 +1,106 @@
-import os
-import sys
-import json
+import os, re, sys, json
+from datetime import datetime
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
-
+if BASE_DIR not in sys.path: sys.path.insert(0, BASE_DIR)
 from skills.llm_worker import ask_llm
 
 raw_path = os.path.join(BASE_DIR, "raw_candidates.json")
 catalog_path = os.path.join(BASE_DIR, "catalog_perks.json")
-cache_path = os.path.join(BASE_DIR, "evaluated_cache.json")
+rejected_path = os.path.join(BASE_DIR, "rejected_log.json")
 
-CONSUMER_MANIFESTO = """
-ТЫ — ПРЕДСТАВИТЕЛЬ АУДИТОРИИ (Студент 2 курса TUKE/UPJŠ в Кошице).
-Твоя цель — эгоистично оценить ценность входящего предложения для студентов.
-Отвечай СТРОГО НА РУССКОМ ЯЗЫКЕ.
+CONSUMER_MANIFESTO = """ТЫ — СТУДЕНТ 2 КУРСА TUKE В КОШИЦЕ И РЕДАКТОР КАНАЛА.
+Твоя задача — отобрать только лучшее для студентов, перевести на русский и написать суть.
 
-КРИТЕРИИ ОЦЕНКИ:
-1. РАБОТА (jobs):
-   - ОДОБРЯЙ: Склад, фасовка, выкладка товаров, бариста, курьер, работа по вечерам/выходным, стажировки без опыта.
-   - БРАКУЙ БЕЗ ПОЩАДЫ: Сеньоры, инженеры с дипломом (статисты, конструкторы), менеджеры проектов, полная занятость (8:00–17:00 в будни), сетевой маркетинг (MLM, OVB).
+ЖЕСТКИЕ ПРАВИЛА ОТБОРА:
+1. РАБОТА (jobs): ОДОБРЯЙ только почасовые подработки (brigáda, na dohodu). БРАКУЙ работу с окладом в месяц, SBS/охрану, фулл-тайм.
+2. ЕДА И СОБЫТИЯ (food, events): ОДОБРЯЙ скидки по ISIC, вечерние заведения (Tabačka, Kino Úsmev), кино, выставки.
+3. ИГРЫ (games): ОДОБРЯЙ полные бесплатные игры. БРАКУЙ DLC, Starter Pack.
+4. КУРСЫ (courses):
+   - ОДОБРЯЙ: IT (Python, QA, Data Science, SQL), AI, иностранные языки (особенно словацкий/английский), дизайн (Figma, Adobe), маркетинг, Excel, продуктивность.
+   - БРАКУЙ БЕЗЖАЛОСТНО: Инфоцыганство, крипто-трейдинг, ставки, астрологию, эзотерику, таро, курсы MBA для директоров, дачный ландшафт, устаревшие технологии.
+   - ОДОБРЯЙ только если скидка 100%, либо курс изначально бесплатен (включая режим Audit).
 
-2. ЕДА (food) для вечернего дайджеста (17:00):
-   - ОДОБРЯЙ: Вечерние места, пицца, бургеры, бары, скидки по ISIC, работающие после 16:00.
-   - БРАКУЙ: Дневные комплексные обеды (закрывающиеся в 14:00-14:30), так как в 17:00 студент на них уже не успеет.
+ПРАВИЛА ТЕКСТА:
+- Переведи словацкие слова. НЕ ПЕРЕВОДИ названия брендов (Subway, Coursera, Udemy), улиц (Gorkého) и локаций (Kulturpark).
+- В поле "reason" напиши 1-2 живых предложения о сути курса/предложения. НЕ дублируй цену.
 
-3. ИГРЫ, ХАЛЯВА И СОБЫТИЯ (games/events/shara):
-   - ОДОБРЯЙ: Полная халява (0 €), раздачи Steam/Playtest ключей, крупные скидки по ISIC, кинотеатры, тусовки.
-   - БРАКУЙ: Мутный спам, микро-скидки (5-10%) на никому не нужный мусор, скучные отчеты деканата.
+ОЦЕНКА (perk_score 0-100):
+- Полностью бесплатные курсы (Coursera, edX) или 100% купон Udemy: 85-95 баллов.
+- Одобренная Еда и Ивенты: 75-85 баллов.
 
-ФОРМАТ ОТВЕТА (СТРОГО JSON):
-{
-  "approved": true или false,
-  "perk_score": число от 0 до 100,
-  "reason": "твой дерзкий, честный вердикт от лица студента на русском языке (1-2 предложения)"
-}
-"""
+ФОРМАТ ОТВЕТА (СТРОГО JSON): 
+{"approved": true/false, "perk_score": 85, "title_ru": "Заголовок", "reason": "Суть без воды"}"""
 
-def load_cache():
-    if os.path.exists(cache_path):
-        try:
-            with open(cache_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return {}
-    return {}
-
-def save_cache(cache):
-    with open(cache_path, "w", encoding="utf-8") as f:
-        json.dump(cache, f, ensure_ascii=False, indent=2)
-
-def evaluate_single_item(item: dict, category: str = "games", use_cache: bool = True) -> dict:
-    """Единый фейсконтроль Агента-Потребителя для любой карточки (включая Шару)."""
-    cache = load_cache()
-    item_id = item.get("id", item.get("url", item.get("title")))
-
-    if use_cache and item_id in cache:
-        cached_res = cache[item_id]
-        cached_res["from_cache"] = True
-        return cached_res
-
-    prompt = (
-        f"Категория: {category}\n"
-        f"Название: {item.get('title')}\n"
-        f"Цена: {item.get('price', '0 €')}\n"
-        f"Описание: {item.get('raw_text', '')}"
-    )
+def evaluate_single_item(item: dict, cat: str) -> dict:
+    if item.get("urgency") == "evergreen" or cat in ["software", "tourism"]:
+        return {"approved": True, "perk_score": 88, "title_ru": item.get("title"), "reason": item.get("raw_text")}
+    
+    prompt = f"Категория: {cat}\nЗаголовок: {item.get('title')}\nЦена: {item.get('price', '')}\nОписание: {item.get('raw_text')}"
     decision = ask_llm(CONSUMER_MANIFESTO, prompt, expect_json=True)
-
-    if not decision or "approved" not in decision:
-        res = {"approved": False, "perk_score": 0, "reason": "LLM не смогла оценить оффер", "from_cache": False}
-    else:
-        res = {
-            "approved": bool(decision.get("approved", False)),
-            "perk_score": int(decision.get("perk_score", 50)),
-            "reason": decision.get("reason", ""),
-            "from_cache": False
+    
+    if decision and "approved" in decision:
+        score = decision.get("perk_score", 70)
+        if cat == "courses" and decision.get("approved"): score = max(score, 80) 
+        return {
+            "approved": decision.get("approved"),
+            "perk_score": score,
+            "title_ru": decision.get("title_ru") or item.get("title"),
+            "reason": decision.get("reason") or item.get("raw_text")
         }
-
-    cache[item_id] = {
-        "approved": res["approved"],
-        "perk_score": res["perk_score"],
-        "reason": res["reason"]
-    }
-    save_cache(cache)
-    return res
+    return {"approved": False, "perk_score": 0, "title_ru": item.get("title"), "reason": "Сбой оценки"}
 
 def run():
-    print("🧠 [Consumer Agent] Запуск ИИ-оценки предложений от лица студента...")
-    if not os.path.exists(raw_path):
-        print("❌ Файл raw_candidates.json не найден. Сначала запусти скрапер.")
-        return
+    print("🧠 [Consumer Agent] Фильтрация с помощью LLM-Потребителя...")
+    if not os.path.exists(raw_path): return
+    with open(raw_path, "r", encoding="utf-8") as f: raw_data = json.load(f)
+    
+    catalog, today = {}, datetime.now().strftime("%Y-%m-%d")
+    if os.path.exists(catalog_path):
+        try:
+            with open(catalog_path, "r", encoding="utf-8") as f: catalog = json.load(f)
+        except Exception: pass
 
-    with open(raw_path, "r", encoding="utf-8") as f:
-        raw_data = json.load(f)
-
-    catalog = {cat: [] for cat in raw_data.keys()}
-    stats = {"approved": 0, "rejected": 0, "cached": 0}
-
-    for category, items in raw_data.items():
-        if category in ["software", "courses", "tourism"]:
-            for it in items:
-                it["perk_score"] = 80
-                it["consumer_reason"] = "Базовый студенческий перк"
-                catalog[category].append(it)
-            continue
-
+    rejected_log = []
+    if os.path.exists(rejected_path):
+        try:
+            with open(rejected_path, "r", encoding="utf-8") as f: rejected_log = json.load(f)
+        except Exception: pass
+            
+    for cat, items in raw_data.items():
+        catalog.setdefault(cat, [])
+        survived = []
+        
+        for old in catalog[cat]:
+            if old.get("added_date") == today:
+                survived.append(old)
+            elif "valid_until" in old:
+                try:
+                    if datetime.fromisoformat(old["valid_until"]) > datetime.now():
+                        old["is_fresh"] = False
+                        survived.append(old)
+                except Exception: pass
+        
+        seen_urls = {x.get("url") for x in survived if x.get("url")}
+        
         for it in items:
-            res = evaluate_single_item(it, category, use_cache=True)
-            if res.get("from_cache"):
-                stats["cached"] += 1
-
+            if it.get("url") in seen_urls: continue
+            
+            res = evaluate_single_item(it, cat)
             if res.get("approved"):
-                stats["approved"] += 1
-                it["perk_score"] = res.get("perk_score", 70)
-                it["consumer_reason"] = res.get("reason", "")
-                catalog[category].append(it)
-                if not res.get("from_cache"):
-                    print(f"  🟢 [ОДОБРЕНО] [{category}] {it.get('title')[:40]} | Score: {it['perk_score']}")
-                    print(f"     💬 Вердикт: {it['consumer_reason']}")
+                it.update({"title": res["title_ru"], "consumer_reason": res["reason"], "perk_score": res["perk_score"], "is_fresh": True, "added_date": today})
+                survived.append(it)
+                print(f"  🟢 ОДОБРЕНО [{cat}]: {res['title_ru'][:35]}... | Score: {res['perk_score']}")
             else:
-                stats["rejected"] += 1
-                if not res.get("from_cache"):
-                    print(f"  🔴 [ОТКЛОНЕНО] [{category}] {it.get('title')[:40]}")
-                    print(f"     💬 Причина: {res.get('reason')}")
+                reason = res.get('reason', 'Не подошло по фильтрам')
+                print(f"  🔴 ОТКЛОНЕНО [{cat}]: {it.get('title')[:35]}... -> {reason}")
+                rejected_log.append({"date": today, "category": cat, "title": it.get("title"), "reason": reason})
+        
+        survived.sort(key=lambda x: (1 if x.get("is_fresh") else 0, x.get("perk_score", 0)), reverse=True)
+        catalog[cat] = survived
+        
+    with open(catalog_path, "w", encoding="utf-8") as f: json.dump(catalog, f, ensure_ascii=False, indent=2)
+    with open(rejected_path, "w", encoding="utf-8") as f: json.dump(rejected_log[-300:], f, ensure_ascii=False, indent=2)
+    print("✅ Каталог и Лог Отказов успешно обновлены!")
 
-    for cat in catalog:
-        catalog[cat].sort(key=lambda x: x.get("perk_score", 0), reverse=True)
-
-    with open(catalog_path, "w", encoding="utf-8") as f:
-        json.dump(catalog, f, ensure_ascii=False, indent=2)
-
-    print(f"\n📊 [Итоги оценки] Одобрено: {stats['approved']} | Отклонено: {stats['rejected']} (Из кэша: {stats['cached']})")
-    print("✅ База catalog_perks.json успешно обновлена проверенными офферами.")
-
-if __name__ == "__main__":
-    run()
+if __name__ == "__main__": run()
